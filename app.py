@@ -8,11 +8,10 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
+from datetime import datetime
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 import random
-import json
 
 # ============================================================================
 # DATA MODELS
@@ -549,10 +548,12 @@ with tab2:
             """, unsafe_allow_html=True)
         
         with col3:
+            mood_emojis = ["😢", "😞", "😟", "😕", "😐", "🙂", "😊", "😄", "😁", "🤩"]
+            mood_idx = max(0, min(latest_entry.mood_score - 1, 9))  # Clamp to valid range
             st.markdown(f"""
             <div style="text-align: center; padding: 1rem;">
                 <p style="color: #888; margin-bottom: 0.5rem;">Today's Mood</p>
-                <div style="font-size: 3rem;">{["😢", "😞", "😟", "😕", "😐", "🙂", "😊", "😄", "😁", "🤩"][latest_entry.mood_score-1]}</div>
+                <div style="font-size: 3rem;">{mood_emojis[mood_idx]}</div>
                 <p style="font-weight: bold; color: #667eea;">{latest_entry.mood_score}/10</p>
             </div>
             """, unsafe_allow_html=True)
@@ -744,13 +745,13 @@ with tab3:
         # Correlation Analysis
         st.markdown("### 🔗 Factor Correlations")
         
-        correlation_data = df[['sleep_hours', 'mood_score', 'steps', 'app_usage_hours', 'risk_score']].corr()
+        correlation_data = df[['sleep_hours', 'mood_score', 'messages_sent', 'steps', 'app_usage_hours', 'risk_score']].corr()
         
         fig_corr = px.imshow(
             correlation_data,
             labels=dict(color="Correlation"),
-            x=['Sleep', 'Mood', 'Steps', 'Screen Time', 'Risk'],
-            y=['Sleep', 'Mood', 'Steps', 'Screen Time', 'Risk'],
+            x=['Sleep', 'Mood', 'Messages', 'Steps', 'Screen', 'Risk'],
+            y=['Sleep', 'Mood', 'Messages', 'Steps', 'Screen', 'Risk'],
             color_continuous_scale='RdBu_r',
             aspect='auto'
         )
