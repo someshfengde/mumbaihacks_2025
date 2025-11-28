@@ -2,67 +2,53 @@
 
 🧠 **Mental Health Monitoring System** - AI-assisted behavioral monitoring and crisis prediction.
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mindguard.streamlit.app)
+
 ## Overview
 
 MindGuard is an MVP prototype that:
 - **Monitors behavioral signals** (sleep, mood, social activity, movement, screen time)
 - **Predicts mental health crisis risk** using rule-based analysis
-- **Displays insights in a dashboard** with trend charts
-- **Suggests interventions** based on risk level
+- **Displays insights in a beautiful dashboard** with interactive trend charts
+- **Suggests personalized interventions** based on risk level
 
-## Architecture
+## 🚀 Quick Start (Streamlit Cloud)
 
-```
-┌─────────────────┐     HTTP     ┌─────────────────┐
-│   Streamlit     │ ──────────►  │    FastAPI      │
-│   Frontend      │ ◄──────────  │    Backend      │
-│                 │              │                 │
-│  • Input Form   │              │  • POST /data   │
-│  • Dashboard    │              │  • GET /data    │
-│  • Charts       │              │  • POST /predict│
-│                 │              │  • GET /health  │
-└─────────────────┘              └─────────────────┘
-```
+The app is designed to be deployed directly on **Streamlit Cloud**. Simply:
 
-## Quick Start
+1. Fork this repository
+2. Connect to [Streamlit Cloud](https://streamlit.io/cloud)
+3. Deploy `app.py`
 
-### 1. Backend Setup
+### Local Development
 
 ```bash
-cd backend
+# Install dependencies
 pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Run the app
+streamlit run app.py
 ```
 
-### 2. Frontend Setup
+## ✨ Features
 
-```bash
-cd frontend
-pip install -r requirements.txt
-streamlit run app/streamlit_app.py
-```
+### 📝 Log Entry Tab
+- Input daily behavioral data with instant feedback
+- Visual indicators for sleep quality and mood
+- Progress tracking for step goals
+- Real-time risk assessment after each entry
 
-### 3. Run Tests
+### 📊 Dashboard Tab
+- Beautiful risk score gauge with color coding
+- Current mood and sleep status at a glance
+- 7-day trend charts for all metrics
+- Personalized recommendations
 
-```bash
-# Backend tests
-cd backend
-pytest -v
-
-# Frontend tests
-cd frontend
-pytest -v
-```
-
-## API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Health check |
-| `/data` | POST | Submit behavioral data |
-| `/data` | GET | Get all stored data |
-| `/data/latest` | GET | Get latest n entries |
-| `/predict` | POST | Get risk prediction |
+### 📈 Analytics Tab
+- Summary statistics across all entries
+- Risk score trend visualization
+- Correlation heatmap between factors
+- Complete data history table
 
 ## Risk Scoring
 
@@ -89,47 +75,22 @@ The risk score (0-1) is calculated based on:
 
 ```
 mindguard/
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py           # FastAPI application
-│   │   ├── models.py         # Pydantic models
-│   │   ├── repository.py     # In-memory data store
-│   │   └── risk_calculator.py # Risk scoring logic
-│   ├── tests/
-│   │   ├── test_api.py
-│   │   ├── test_repository.py
-│   │   └── test_risk_calculator.py
-│   └── requirements.txt
-├── frontend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── api_client.py     # Backend API client
-│   │   └── streamlit_app.py  # Streamlit dashboard
-│   ├── tests/
-│   │   └── test_api_client.py
-│   └── requirements.txt
-└── README.md
+├── app.py              # Main Streamlit application (unified)
+├── requirements.txt    # Python dependencies
+├── README.md
+├── backend/            # Legacy API (optional)
+│   └── ...
+└── frontend/           # Legacy frontend (optional)
+    └── ...
 ```
 
-## Features
+## Screenshots
 
-### Input Form
-- Sleep hours (0-24)
-- Mood score (1-10)
-- Messages sent
-- Steps walked
-- Screen time (hours)
+### Log Entry
+![Log Entry](https://github.com/user-attachments/assets/input-screenshot)
 
 ### Dashboard
-- Current risk score gauge
-- Risk level indicator
-- Intervention suggestions
-- 7-day trend charts:
-  - Mood trend
-  - Sleep pattern
-  - Activity level
-  - Social activity
+![Dashboard](https://github.com/user-attachments/assets/dashboard-screenshot)
 
 ## Disclaimer
 
@@ -140,3 +101,7 @@ If you're experiencing mental health challenges, please reach out to a qualified
 ## License
 
 MIT License
+
+---
+
+Built with ❤️ for **MumbaiHacks 2025**
