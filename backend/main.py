@@ -4,8 +4,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from typing import List
 
-from .models import BehavioralData, RiskPrediction, HealthResponse
+from .models import (
+    BehavioralData,
+    EmotionAnalysis,
+    HealthResponse,
+    JournalEntry,
+    RiskPrediction,
+)
 from .risk_calculator import calculate_risk_score
+from .ai_insights import analyze_emotions
 
 app = FastAPI(
     title="MindGuard API",
@@ -50,7 +57,7 @@ async def get_data():
 @app.post("/predict", response_model=RiskPrediction)
 async def predict_risk(data: BehavioralData):
     """Predict risk based on behavioral data."""
-    risk_score, risk_level, suggestion, color = calculate_risk_score(
+    risk_score, risk_level, suggestion, color, drivers, actions = calculate_risk_score(
         sleep_hours=data.sleep_hours,
         mood_score=data.mood_score,
         messages_sent=data.messages_sent,
@@ -62,7 +69,9 @@ async def predict_risk(data: BehavioralData):
         risk_score=risk_score,
         risk_level=risk_level,
         suggestion=suggestion,
-        color=color
+        color=color,
+        drivers=drivers,
+        recommended_actions=actions
     )
 
 
@@ -70,3 +79,10 @@ async def predict_risk(data: BehavioralData):
 async def get_latest():
     """Get the latest 7 entries for trend analysis."""
     return {"data": data_store[-7:] if data_store else []}
+
+
+@app.post("/analyze-text", response_model=EmotionAnalysis)
+async def analyze_text(entry: JournalEntry):
+    """Analyze a free-form journal entry for emotional context."""
+    result = analyze_emotions(entry.text)
+    return EmotionAnalysis(**result.to_dict())

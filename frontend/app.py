@@ -163,6 +163,10 @@ if 'history' not in st.session_state:
     st.session_state.history = []
 if 'current_risk' not in st.session_state:
     st.session_state.current_risk = None
+if 'emotion_result' not in st.session_state:
+    st.session_state.emotion_result = None
+if 'journal_result' not in st.session_state:
+    st.session_state.journal_result = None
 
 
 def predict_risk(data):
@@ -174,7 +178,14 @@ def predict_risk(data):
     except requests.exceptions.RequestException:
         # Fallback: calculate locally if API is not available
         from backend.risk_calculator import calculate_risk_score
-        risk_score, risk_level, suggestion, color = calculate_risk_score(
+        (
+            risk_score,
+            risk_level,
+            suggestion,
+            color,
+            drivers,
+            actions,
+        ) = calculate_risk_score(
             sleep_hours=data["sleep_hours"],
             mood_score=data["mood_score"],
             messages_sent=data["messages_sent"],
@@ -185,8 +196,40 @@ def predict_risk(data):
             "risk_score": risk_score,
             "risk_level": risk_level,
             "suggestion": suggestion,
-            "color": color
+            "color": color,
+            "drivers": drivers,
+            "recommended_actions": actions,
         }
+    return None
+
+
+def analyze_journal(text: str):
+    """Call the emotion analysis API or fall back to local heuristics."""
+    payload = {"text": text}
+    try:
+        response = requests.post(f"{API_URL}/analyze-text", json=payload, timeout=8)
+        if response.status_code == 200:
+            return response.json()
+    except requests.exceptions.RequestException:
+        from backend.ai_insights import analyze_emotions
+        result = analyze_emotions(text)
+        return result.to_dict()
+    return None
+
+
+def analyze_journal_entry(text: str):
+    """Call backend emotion analysis or fall back locally."""
+    payload = {"text": text}
+    try:
+        response = requests.post(f"{API_URL}/analyze-text", json=payload, timeout=10)
+        if response.status_code == 200:
+            return response.json()
+    except requests.exceptions.RequestException:
+        try:
+            from backend.ai_insights import analyze_emotions
+            return analyze_emotions(text).to_dict()
+        except Exception:
+            return None
     return None
 
 
@@ -318,6 +361,35 @@ def main():
             </div>
             """, unsafe_allow_html=True)
             
+            # Risk drivers + actions
+            drivers = result.get("drivers") or []
+            actions = result.get("recommended_actions") or []
+            st.markdown("#### 🔍 Risk Drivers & Micro-Actions")
+            insight_col1, insight_col2 = st.columns(2)
+
+            driver_list = "".join(f"<li>{driver}</li>" for driver in drivers[:4]) or "<li>No significant stressors detected.</li>"
+            action_list = "".join(f"<li>{action}</li>" for action in actions[:4]) or "<li>Keep following your current routines.</li>"
+
+            with insight_col1:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <p style="color:#a0a0a0; font-size:0.85rem; margin-bottom:0.5rem;">Top Drivers</p>
+                    <ul style="padding-left:1.2rem; color:#fff; margin:0;">
+                        {driver_list}
+                    </ul>
+                </div>
+                """, unsafe_allow_html=True)
+
+            with insight_col2:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <p style="color:#a0a0a0; font-size:0.85rem; margin-bottom:0.5rem;">Micro-Actions</p>
+                    <ul style="padding-left:1.2rem; color:#fff; margin:0;">
+                        {action_list}
+                    </ul>
+                </div>
+                """, unsafe_allow_html=True)
+
             st.markdown("<br>", unsafe_allow_html=True)
             
             # Trend chart
@@ -391,6 +463,51 @@ def main():
                 <p style="color: #666;">Fill in your daily metrics and click "Analyze" to see your wellness insights</p>
             </div>
             """, unsafe_allow_html=True)
+
+    st.markdown("<hr>", unsafe_allow_html=True)
+
+    st.markdown("### 📝 Emotion Journal")
+    st.markdown("Capture how you feel in your own words. We'll analyze the emotional tone and suggest next steps.")
+
+    journal_text = st.text_area(
+        "How are you feeling today?",
+        placeholder="Write a few sentences about your day, your thoughts, or anything on your mind...",
+        height=140,
+    )
+
+    journal_col1, journal_col2 = st.columns([1, 2])
+    with journal_col1:
+        if st.button("💬 Analyze Emotions", use_container_width=True, disabled=len(journal_text.strip()) < 10):
+            analysis = analyze_journal(journal_text.strip())
+            if analysis:
+                st.session_state.emotion_result = analysis
+                st.success("Emotion insights updated", icon="✨")
+
+    if st.session_state.emotion_result:
+        result = st.session_state.emotion_result
+        with journal_col2:
+            st.markdown("""
+            <div class="metric-card" style="padding: 1rem 1.5rem;">
+                <p style="color:#a0a0a0; font-size:0.85rem; margin:0;">Primary Emotion</p>
+                <h3 style="margin:0; color:#fff;">{primary} ({confidence:.0%} confidence)</h3>
+                <p style="color:#a0a0a0; font-size:0.85rem; margin-top:0.5rem;">Stress Level: <strong style="color:#FFE66D;">{stress}</strong></p>
+                <p style="color:#ddd; margin-top:1rem;">{summary}</p>
+                <p style="color:#4ECDC4; margin-top:1rem; font-weight:600;">👉 {recommendation}</p>
+            </div>
+            """.format(
+                primary=result["primary_emotion"].title(),
+                confidence=result["confidence"],
+                stress=result["stress_level"].title(),
+                summary=result["summary"],
+                recommendation=result["recommendation"],
+            ), unsafe_allow_html=True)
+
+            if result.get("supporting_emotions"):
+                chips = " ".join(
+                    f"<span style='background:rgba(255,255,255,0.1); border-radius:999px; padding:0.2rem 0.8rem; margin-right:0.3rem; font-size:0.85rem;'>{emo.title()}</span>"
+                    for emo in result["supporting_emotions"]
+                )
+                st.markdown(f"<div style='margin-top:0.5rem;'>Secondary cues: {chips}</div>", unsafe_allow_html=True)
     
     # Footer
     st.markdown("<hr>", unsafe_allow_html=True)
