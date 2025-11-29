@@ -1,4 +1,4 @@
-# 🧠 MindGuard - Mental Health Monitoring Dashboard
+<img width="1457" height="763" alt="image" src="https://github.com/user-attachments/assets/b555730e-7af0-4b32-b8b7-770f4d4acf13" /># 🧠 MindGuard - Mental Health Monitoring Dashboard
 
 An aesthetically minimal mental health monitoring application built with Streamlit and FastAPI.
 
@@ -11,6 +11,11 @@ An aesthetically minimal mental health monitoring application built with Streaml
 - **Responsive Design**: Works seamlessly on all devices
 
 ## 🚀 Quick Start
+
+## Project screenshots 
+<img width="1454" height="868" alt="image" src="https://github.com/user-attachments/assets/78389ac8-2429-4044-851f-07754161fdfb" />
+<img width="1457" height="763" alt="image" src="https://github.com/user-attachments/assets/e16c2c38-d647-43a5-815e-283a12e8348d" />
+
 
 ### Prerequisites
 
